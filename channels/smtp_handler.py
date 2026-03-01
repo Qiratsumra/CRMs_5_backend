@@ -29,7 +29,7 @@ class SMTPHandler:
             logger.warning("SMTP not configured - email sending disabled")
 
     def send_email(self, to_email: str, subject: str, body: str, html: bool = False):
-        """Send an email via SMTP."""
+        """Send an email via SMTP with timeout."""
         if not self.enabled:
             logger.warning(f"Cannot send email to {to_email} - SMTP not configured")
             return False
@@ -46,8 +46,7 @@ class SMTPHandler:
                 msg.attach(MIMEText(body, "plain"))
 
             logger.info(f"Connecting to SMTP server {self.smtp_host}:{self.smtp_port}")
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
-                server.set_debuglevel(1)  # Enable debug output
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=5) as server:
                 logger.info("Starting TLS...")
                 server.starttls()
                 logger.info(f"Logging in as {self.smtp_user}...")

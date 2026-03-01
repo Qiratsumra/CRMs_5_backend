@@ -184,7 +184,42 @@ async def submit_support_request(submission: SupportSubmission):
 
             logger.info(f"Web form submission saved directly to DB: ticket {ticket_id}")
 
-        # Send confirmation email
+            # Process with AI agent immediately (synchronous mode)
+            try:
+                from agent.customer_success_agent import run_agent
+
+                # Build message for agent
+                agent_message = {
+                    "channel": "web_form",
+                    "content": submission.message,
+                    "customer_email": submission.email,
+                    "customer_name": submission.name,
+                    "conversation_id": conversation_id,  # Signal that message is already stored
+                    "channel_message_id": ticket_id,
+                    "metadata": {
+                        "category": submission.category,
+                        "priority": submission.priority,
+                    }
+                }
+
+                ai_response = await run_agent(agent_message)
+
+                # Update ticket status based on AI response
+                if ai_response.get("status") == "success":
+                    await pool.execute(
+                        "UPDATE tickets SET status = 'resolved' WHERE id = $1",
+                        uuid.UUID(ticket_id)
+                    )
+                    logger.info(f"AI processed ticket {ticket_id} successfully")
+                else:
+                    logger.warning(f"AI processing failed for ticket {ticket_id}: {ai_response.get('error')}")
+
+            except Exception as e:
+                logger.error(f"Failed to process ticket {ticket_id} with AI: {e}", exc_info=True)
+                # Don't fail the request - ticket is still created
+
+        # Send confirmation email asynchronously (non-blocking)
+        import asyncio
         smtp = get_smtp_handler()
         if smtp.enabled:
             email_subject = f"Support Request Received - Ticket #{ticket_id[:8]}"
@@ -206,7 +241,10 @@ Best regards,
 Customer Support Team
             """.strip()
 
-            smtp.send_email(submission.email, email_subject, email_body)
+            # Send email in background task (non-blocking)
+            asyncio.create_task(
+                asyncio.to_thread(smtp.send_email, submission.email, email_subject, email_body)
+            )
 
         # Estimate response time based on priority
         response_times = {
