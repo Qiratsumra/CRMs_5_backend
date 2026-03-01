@@ -1,13 +1,13 @@
 """
 Customer Success Agent definition and runner.
-Uses Gemini directly without the agents library.
+Uses Google Genai (new package).
 """
 
 import logging
 import os
 from datetime import datetime, timezone
 from typing import Optional
-import google.generativeai as genai
+from google import genai
 
 from dotenv import load_dotenv
 
@@ -26,9 +26,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configure Gemini
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-2.5-flash')
+# Configure Gemini with new package
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 
 async def run_agent(message: dict) -> dict:
@@ -112,14 +111,17 @@ async def run_agent(message: dict) -> dict:
         # 6. Run Gemini
         logger.info(f"Running Gemini for conversation {conversation_id}")
 
-        response = model.generate_content(agent_prompt)
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-exp',
+            contents=agent_prompt
+        )
 
         # Handle response safely
-        if response.candidates and response.candidates[0].content.parts:
+        if response.text:
             response_text = response.text
         else:
             # Fallback if Gemini blocks or fails
-            logger.warning(f"Gemini response blocked or empty. Finish reason: {response.candidates[0].finish_reason if response.candidates else 'unknown'}")
+            logger.warning(f"Gemini response blocked or empty")
             response_text = "Thank you for contacting us. We've received your message and our team will review it shortly. We'll get back to you as soon as possible."
 
         # 7. Store outbound message
