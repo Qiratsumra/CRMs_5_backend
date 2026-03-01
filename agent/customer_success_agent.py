@@ -112,7 +112,7 @@ async def run_agent(message: dict) -> dict:
         logger.info(f"Running Gemini for conversation {conversation_id}")
 
         response = client.models.generate_content(
-            model='gemini-2.0-flash-exp',
+            model='gemini-2.5-flash',
             contents=agent_prompt
         )
 
