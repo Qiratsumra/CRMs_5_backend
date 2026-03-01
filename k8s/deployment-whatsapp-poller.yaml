@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fte-whatsapp-poller
+  namespace: customer-success-fte
+  labels:
+    app: fte-whatsapp-poller
+spec:
+  # EXACTLY 1 REPLICA - prevents duplicate message processing
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fte-whatsapp-poller
+  template:
+    metadata:
+      labels:
+        app: fte-whatsapp-poller
+    spec:
+      containers:
+      - name: whatsapp-poller
+        image: customer-success-fte:latest
+        imagePullPolicy: Always
+        command: ["uv", "run", "python", "workers/whatsapp_poller.py"]
+        envFrom:
+        - configMapRef:
+            name: fte-config
+        - secretRef:
+            name: fte-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

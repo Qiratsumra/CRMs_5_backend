@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fte-worker
+  namespace: customer-success-fte
+  labels:
+    app: fte-worker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fte-worker
+  template:
+    metadata:
+      labels:
+        app: fte-worker
+    spec:
+      containers:
+      - name: worker
+        image: customer-success-fte:latest
+        imagePullPolicy: Always
+        command: ["uv", "run", "python", "workers/message_processor.py"]
+        envFrom:
+        - configMapRef:
+            name: fte-config
+        - secretRef:
+            name: fte-secrets
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"

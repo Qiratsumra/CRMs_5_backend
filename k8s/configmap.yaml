@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fte-config
+  namespace: customer-success-fte
+data:
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  CORS_ORIGINS: "https://app.techcorp.com"
+  WHATSAPP_MCP_SERVER_PATH: "/whatsapp-mcp/whatsapp-mcp-server"
+  WHATSAPP_POLL_INTERVAL_SECONDS: "5"
+  GMAIL_ENABLED: "true"
+  WHATSAPP_ENABLED: "true"
+  WEBFORM_ENABLED: "true"
