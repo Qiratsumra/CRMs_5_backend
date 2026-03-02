@@ -26,8 +26,7 @@ You're currently using `onboarding@resend.dev` which works for testing but:
 
 Your current `.env` is configured with:
 ```
-RESEND_API_KEY=re_B24Uskq4_FA3eXvwJU5JBU1Qxzk9xzoY5
-RESEND_FROM_EMAIL=sheikhqirat100@gmail.com
+
 ```
 
 **Note**: You're using your Gmail address as the from email, but this will only work if you verify this email in Resend first.
