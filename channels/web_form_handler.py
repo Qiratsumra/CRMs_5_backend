@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field, EmailStr, field_validator
 
 from database.queries import get_ticket_by_id, load_conversation_history, get_db_pool
-from channels.smtp_handler import get_smtp_handler
+from channels.resend_handler import get_resend_handler
 import os
 
 logger = logging.getLogger(__name__)
@@ -220,8 +220,8 @@ async def submit_support_request(submission: SupportSubmission):
 
         # Send confirmation email asynchronously (non-blocking)
         import asyncio
-        smtp = get_smtp_handler()
-        if smtp.enabled:
+        resend = get_resend_handler()
+        if resend.enabled:
             email_subject = f"Support Request Received - Ticket #{ticket_id[:8]}"
             email_body = f"""
 Hello {submission.name},
@@ -243,7 +243,7 @@ Customer Support Team
 
             # Send email in background task (non-blocking)
             asyncio.create_task(
-                asyncio.to_thread(smtp.send_email, submission.email, email_subject, email_body)
+                asyncio.to_thread(resend.send_email, submission.email, email_subject, email_body)
             )
 
         # Estimate response time based on priority

@@ -46,7 +46,7 @@ class SMTPHandler:
                 msg.attach(MIMEText(body, "plain"))
 
             logger.info(f"Connecting to SMTP server {self.smtp_host}:{self.smtp_port}")
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=5) as server:
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10) as server:
                 logger.info("Starting TLS...")
                 server.starttls()
                 logger.info(f"Logging in as {self.smtp_user}...")
@@ -58,6 +58,15 @@ class SMTPHandler:
             logger.info(f"Email sent successfully to {to_email}: {subject}")
             return True
 
+        except OSError as e:
+            if e.errno == 101:
+                logger.error(f"Network unreachable - SMTP server {self.smtp_host}:{self.smtp_port} cannot be reached. Check firewall/network settings or use a transactional email service.")
+            else:
+                logger.error(f"Network error sending email to {to_email}: {e}")
+            return False
+        except smtplib.SMTPAuthenticationError as e:
+            logger.error(f"SMTP authentication failed for {self.smtp_user}: {e}")
+            return False
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {e}", exc_info=True)
             return False

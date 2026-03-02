@@ -22,5 +22,6 @@ dependencies = [
     "pgvector>=0.4.2",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.1",
+    "resend>=2.23.0",
     "uvicorn>=0.41.0",
 ]
